@@ -1,9 +1,8 @@
-import { Controller, Get, Param, Post, Body, UseGuards,Request } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, UseGuards,Request, Query } from '@nestjs/common';
 import { Movimentation } from './movimentation.entity';
 import { JwtAuthGuard } from '../auth/jwt-guard';
 import { MovimentationsService } from './movimentations.service';
-import { AuthGuard } from '@nestjs/passport';
-import { CreateMovimentationDto } from './dto'
+import { CreateMovimentationDto, FindMovimentationsDto } from './dto'
 
 @UseGuards(JwtAuthGuard)
 @Controller('api/movimentations')
@@ -12,8 +11,8 @@ export class MovimentationsController {
 
    
     @Get()
-    getAllMovimentations(): Promise<Movimentation[]> {
-        return this.movimentationService.getAllMovimentations()
+    getAllMovimentations(@Query() query: FindMovimentationsDto): Promise<Movimentation[]> {
+        return this.movimentationService.getAllMovimentations(query)
     }
 
     @Get(':id')
