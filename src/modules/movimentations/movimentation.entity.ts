@@ -1,23 +1,23 @@
 
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, OneToMany, ManyToOne, JoinTable } from 'typeorm';
-import { PlanOfBills } from '../plan-of-bills/plan-of-bills.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, ManyToOne } from 'typeorm';
 import { User } from '../users/user.entity';
+import { Classification } from '../classification/classification.entity';
 
 @Entity()
 export class Movimentation {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({nullable: false})
+    @Column({ type: 'date', nullable: false })
     date: Date;
 
-    @Column({nullable: false})
-    value:number
+    @Column({ type: 'int', nullable: false })
+    value: number
 
-    @ManyToOne(type => PlanOfBills, planOfBills => planOfBills.movimentations)
-    planOfBill: PlanOfBills;
+    @ManyToOne(type => Classification, classification => classification.movimentations)
+    classification: Classification;
 
-    @Column({nullable: true})
+    @Column({ type: 'date', nullable: true })
     payDate: Date;
 
     @OneToOne(type => User)

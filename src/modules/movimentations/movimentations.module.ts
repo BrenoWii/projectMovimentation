@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { Movimentation } from 'src/modules/movimentations/movimentation.entity';
+import { Movimentation } from './movimentation.entity';
 import { MovimentationsController } from './movimentations.controller';
 import { MovimentationsService } from './movimentations.service';
 import { TypeOrmModule } from '@nestjs/typeorm'

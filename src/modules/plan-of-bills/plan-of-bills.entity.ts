@@ -1,7 +1,5 @@
-import { type } from 'os';
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Classification } from '../classification/classification.entity';
-import { Movimentation } from '../movimentations/movimentation.entity';
 
 @Entity({
   name: 'plan-of-bills',
@@ -13,12 +11,8 @@ export class PlanOfBills {
   @Column()
   description: string;
 
-  @ManyToOne(type => Classification, classification => classification.planOfBills)
-  classification: Classification;
-
-  @OneToMany(type => Movimentation, movimentation => movimentation.planOfBill)
-  movimentations: Movimentation[]
-
+  @OneToMany(type => Classification, classification => classification.planOfBill)
+  classifications: Classification[];
 
   @CreateDateColumn()
   createDate: Date

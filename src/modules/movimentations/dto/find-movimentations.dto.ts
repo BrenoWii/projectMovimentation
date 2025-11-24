@@ -30,10 +30,6 @@ export class FindMovimentationsDto {
 
   @IsOptional()
   @IsNumberString()
-  planOfBillId?: string;
-
-  @IsOptional()
-  @IsNumberString()
   classificationId?: string;
 
   @IsOptional()

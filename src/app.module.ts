@@ -5,7 +5,11 @@ import { TypeOrmModule,TypeOrmModuleAsyncOptions  } from '@nestjs/typeorm';
 
 import { ConfigModule, ConfigService } from './modules/configuration';
 
-import { User, UsersModule, MovimentationsModule, PlanOfBillsModule,PlanOfBills, ClassificationModule, Classification, Movimentation, AuthModule} from './modules'
+import { UsersModule } from './modules/users/users.module';
+import { MovimentationsModule } from './modules/movimentations/movimentations.module';
+import { PlanOfBillsModule } from './modules/plan-of-bills/plan-of-bills.module';
+import { ClassificationModule } from './modules/classification/classification.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 
 @Module({

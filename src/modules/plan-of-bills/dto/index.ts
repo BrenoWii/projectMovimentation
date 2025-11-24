@@ -1,3 +1,4 @@
-import {CreatePlanOfBillsDto} from './create-plan-of-bills.dto'
+import { CreatePlanOfBillsDto } from './create-plan-of-bills.dto'
+import { UpdatePlanOfBillsDto } from './update-plan-of-bills.dto'
 
-export {CreatePlanOfBillsDto}
+export { CreatePlanOfBillsDto, UpdatePlanOfBillsDto }

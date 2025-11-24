@@ -1,4 +1,4 @@
-import { Classification } from "src/modules/classification/classification.entity";
+import { Classification } from "../../classification/classification.entity";
 
 
 export class CreatePlanOfBillsDto {
