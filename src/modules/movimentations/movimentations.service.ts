@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateMovimentationDto, FindMovimentationsDto } from './dto';
+import { CreateMovimentationDto, FindMovimentationsDto, UpdateMovimentationDto } from './dto';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Movimentation } from './movimentation.entity';
 @Injectable()
 export class MovimentationsService {
@@ -106,11 +107,61 @@ export class MovimentationsService {
             payDate: normalizedPayDate,
             value: valueInCentavos,
             classification: movimentation.classification,
-            user: movimentation.user
+            user: movimentation.user,
+            paymentMethod: (movimentation as any).paymentMethod
         };
 
         return await this.movimentationRepo.save(
             this.movimentationRepo.create(toSave),
         );
+    }
+
+    async update(id: number, dto: UpdateMovimentationDto): Promise<Movimentation> {
+        const existing = await this.movimentationRepo.findOne(id);
+        if (!existing) throw new NotFoundException('Movimentation não encontrada: ' + id);
+
+        const normalizeDate = (input: any): Date | undefined => {
+            if (!input) return undefined;
+            if (input instanceof Date) return input;
+            if (typeof input === 'string') {
+                const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
+                if (dateOnly.test(input)) {
+                    const [y, m, d] = input.split('-').map(Number);
+                    return new Date(y, m - 1, d);
+                }
+                const tIndex = input.indexOf('T');
+                if (tIndex > 0) {
+                    const datePart = input.substring(0, tIndex);
+                    const [y, m, d] = datePart.split('-').map(Number);
+                    if (y && m && d) return new Date(y, m - 1, d);
+                }
+                const parsed = new Date(input);
+                if (!isNaN(parsed.getTime())) return parsed;
+            }
+            throw new BadRequestException('Formato de data inválido: ' + input);
+        };
+
+        const toUpdate: Partial<Movimentation> = {};
+        if (dto.date !== undefined) {
+            toUpdate.date = normalizeDate(dto.date);
+        }
+        if (dto.payDate !== undefined) {
+            toUpdate.payDate = normalizeDate(dto.payDate);
+        }
+        if (dto.value !== undefined) {
+            const v = Number(dto.value);
+            if (isNaN(v)) throw new BadRequestException('Valor inválido para value');
+            toUpdate.value = Math.round(v * 100);
+        }
+        if (dto.classificationId !== undefined) {
+            // assign relation by id
+            (toUpdate as any).classification = { id: dto.classificationId };
+        }
+        if (dto.paymentMethod !== undefined) {
+            toUpdate.paymentMethod = dto.paymentMethod;
+        }
+
+        const merged = this.movimentationRepo.merge(existing, toUpdate);
+        return await this.movimentationRepo.save(merged);
     }
 }

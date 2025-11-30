@@ -1,7 +1,8 @@
 import { Classification } from "../../classification/classification.entity";
 import { User } from "../../users/user.entity";
-import { IsDateString, IsNotEmpty, IsNumber, ValidateNested, IsOptional } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, ValidateNested, IsOptional, IsString, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PaymentMethod } from '../movimentation.entity';
 
 export class CreateMovimentationDto {
   @IsNotEmpty()
@@ -23,4 +24,9 @@ export class CreateMovimentationDto {
     @IsOptional()
     @IsDateString()
     payDate?: string;
+    
+    @IsOptional()
+    @IsString()
+    @IsIn(Object.values(PaymentMethod), { message: 'paymentMethod inválido' })
+    paymentMethod?: PaymentMethod;
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Classification } from './classification.entity';
@@ -15,14 +15,27 @@ export class ClassificationService {
     ) {}
 
     async create(payload: CreateClassificationDto): Promise<Classification>{
-        const { planOfBillId, ...rest } = payload;
-        const classification = this.classificationRepo.create(rest as Partial<Classification>);
-        if (planOfBillId) {
-            const plan = await this.planOfBillsRepo.findOne(Number(planOfBillId));
-            if (plan) {
-                (classification as any).planOfBill = plan;
-            }
+        const { planOfBillId, description, type } = payload;
+
+        // Valida presença de type e planOfBillId (DTO também valida, mas reforçamos)
+        if (!type) {
+            throw new BadRequestException('Campo type é obrigatório');
         }
+        if (planOfBillId === undefined || planOfBillId === null) {
+            throw new BadRequestException('Campo planOfBillId é obrigatório');
+        }
+
+        const plan = await this.planOfBillsRepo.findOne(Number(planOfBillId));
+        if (!plan) {
+            throw new NotFoundException('PlanOfBills não encontrado para id: ' + planOfBillId);
+        }
+
+        const classification = this.classificationRepo.create({
+            description,
+            type,
+            planOfBill: plan,
+        } as Partial<Classification>);
+
         return await this.classificationRepo.save(classification);
     }
 
