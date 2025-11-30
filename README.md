@@ -26,50 +26,178 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Financial movements management API built with [NestJS](https://github.com/nestjs/nest) and TypeScript.
+
+## Swagger Documentation
+
+After starting the application, access the interactive documentation:
+
+**URL:** [http://localhost:3000/api](http://localhost:3000/api)
 
 ## Installation
 
 ```bash
-$ npm install
+$ yarn install
 ```
+
+## Configuration
+
+1. Copy `.env.example` file to `.env`
+2. Configure environment variables (PostgreSQL database)
+3. Run necessary migrations
 
 ## Running the app
 
 ```bash
 # development
-$ npm run start
+$ yarn start
 
 # watch mode
-$ npm run start:dev
+$ yarn start:dev
 
-# production mode
-$ npm run start:prod
+# production
+$ yarn start:prod
 ```
 
-## Test
+## Available Routes
+
+### Authentication (`/api/auth`)
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - Register new user
+- `GET /api/auth/me` - Get logged user (requires authentication)
+
+### Users (`/api/users`)
+- `GET /api/users` - List users
+- `GET /api/users/:id` - Get user by ID
+- `POST /api/users` - Create user
+- `PUT /api/users/:id` - Update user
+
+### Classifications (`/api/classification`)
+- `GET /api/classification` - List classifications (with relations)
+- `POST /api/classification` - Create classification
+  - Required fields: `type`, `planOfBillId`
+  - Optional field: `description`
+
+### Plan of Bills (`/api/plan-of-bills`)
+- `GET /api/plan-of-bills` - List plan of bills
+- `POST /api/plan-of-bills` - Create plan of bills
+
+### Movimentations (`/api/movimentations`) 🔒
+*All routes require authentication (Bearer Token)*
+
+- `GET /api/movimentations` - List movimentations (with optional filters)
+  - Query params: `dateFrom`, `dateTo`, `payDateFrom`, `payDateTo`, `valueMin`, `valueMax`, `classificationId`
+- `GET /api/movimentations/:id` - Get movimentation by ID
+- `POST /api/movimentations` - Create movimentation
+- `PATCH /api/movimentations/:id` - Update movimentation (partial)
+
+## Entity Models
+
+### User
+```typescript
+{
+  id: number;
+  username: string;
+  email: string;
+  password: string; // hash
+  createDate: Date;
+  updateDate: Date;
+}
+```
+
+### Classification
+```typescript
+{
+  id: number;
+  description: string;
+  type: string;
+  planOfBill: PlanOfBills; // ManyToOne relation
+  movimentations: Movimentation[]; // OneToMany relation
+  createDate: Date;
+  updateDate: Date;
+}
+```
+
+### PlanOfBills
+```typescript
+{
+  id: number;
+  description: string;
+  classifications: Classification[]; // OneToMany relation
+  createDate: Date;
+  updateDate: Date;
+}
+```
+
+### Movimentation
+```typescript
+{
+  id: number;
+  date: Date; // movimentation date
+  value: number; // value in cents (e.g.: 15000 = $150.00)
+  classification: Classification; // ManyToOne relation
+  payDate?: Date; // payment date (optional)
+  paymentMethod?: PaymentMethod; // payment method (optional)
+  user: User; // OneToOne relation
+}
+```
+
+### PaymentMethod (Enum)
+```typescript
+enum PaymentMethod {
+  CREDIT_CARD = 'CREDIT_CARD',
+  DEBIT_CARD = 'DEBIT_CARD',
+  PIX = 'PIX',
+  MONEY = 'MONEY',
+  TED = 'TED'
+}
+```
+
+## Important Details
+
+### Monetary Values
+- Values are stored in **cents** (integer)
+- When sending: send in reais/dollars (e.g.: `150` for $150.00)
+- Backend automatically converts to cents (`15000`)
+- When receiving: divide by 100 to display in reais/dollars
+
+### Dates
+- Accepts formats: `YYYY-MM-DD` or full ISO (`YYYY-MM-DDTHH:MM:SSZ`)
+- Backend normalizes to local date (no timezone shift)
+- Stored as `date` type in PostgreSQL
+
+### Authentication
+- Use JWT Bearer Token in header: `Authorization: Bearer <token>`
+- Token obtained via `/api/auth/login`
+
+## Tests
 
 ```bash
 # unit tests
-$ npm run test
+$ yarn test
 
 # e2e tests
-$ npm run test:e2e
+$ yarn test:e2e
 
 # test coverage
-$ npm run test:cov
+$ yarn test:cov
 ```
 
-## Support
+## Technologies
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- NestJS 7.x
+- TypeScript
+- TypeORM
+- PostgreSQL
+- JWT Authentication
+- class-validator
+- class-transformer
+- Swagger/OpenAPI
 
-## Stay in touch
+## Author
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Breno Oliveira
 
 ## License
 
-  Nest is [MIT licensed](LICENSE).
+[MIT licensed](LICENSE)
