@@ -59,6 +59,65 @@ $ yarn start:dev
 $ yarn start:prod
 ```
 
+## 🐳 Running with Docker (Recommended)
+
+### Quick Start
+
+```powershell
+# Start everything (Backend + Database + Frontend)
+.\start-all.ps1
+
+# Stop everything
+.\stop-all.ps1
+```
+
+### 📦 What's Included
+
+- **PostgreSQL 15**: Database on port 5432
+- **NestJS Backend**: API on port 3000
+- **Quasar Frontend**: UI on port 8080
+- **Auto-restart**: Containers restart automatically
+
+### 🔒 Database Backup & Security
+
+**⚠️ IMPORTANT: Always backup before:**
+- Executing `docker-compose down -v`
+- Updating PostgreSQL version
+- Making schema changes
+- Cleaning Docker volumes
+
+```powershell
+# Create backup
+.\backup-database.ps1
+
+# List and restore backups
+.\restore-database.ps1
+
+# Clean volumes (DANGEROUS - makes backup first!)
+.\clean-volumes.ps1
+```
+
+📖 **Full backup documentation:** [BACKUP-README.md](./BACKUP-README.md)
+
+### ⚠️ Dangerous Commands
+
+```powershell
+# ❌ NEVER run this without backup - DELETES ALL DATA!
+docker-compose down -v
+
+# ✅ Safe restart (keeps data)
+docker-compose restart
+docker-compose down
+docker-compose up -d
+```
+
+### 🌐 Network Access
+
+The application is configured for local network access (Tailscale):
+- **Backend**: `http://localhost:3000` or `http://100.113.154.3:3000`
+- **Frontend**: `http://localhost:8080` or `http://100.113.154.3:8080`
+- **Swagger**: `http://localhost:3000/api`
+
 ## Available Routes
 
 ### Authentication (`/api/auth`)

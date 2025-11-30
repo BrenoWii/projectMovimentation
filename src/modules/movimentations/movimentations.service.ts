@@ -11,12 +11,13 @@ export class MovimentationsService {
         private readonly movimentationRepo: Repository<Movimentation>,
     ) {}
 
-    async getAllMovimentations(filters?: FindMovimentationsDto, userId?: number): Promise<Movimentation[]> {
+    async getAllMovimentations(filters?: FindMovimentationsDto, userId?: number): Promise<any> {
         // Build a flexible query with optional filters and include relations
-            const qb = this.movimentationRepo
-                .createQueryBuilder('m')
-                .leftJoinAndSelect('m.classification', 'c')
-                .leftJoinAndSelect('m.user', 'u');
+        const qb = this.movimentationRepo
+            .createQueryBuilder('m')
+            .leftJoinAndSelect('m.classification', 'c')
+            .leftJoinAndSelect('c.planOfBill', 'p')
+            .leftJoinAndSelect('m.user', 'u');
 
         // Always filter by user if provided
         if (userId) {
@@ -30,8 +31,8 @@ export class MovimentationsService {
                 payDateFrom,
                 payDateTo,
                 valueMin,
-                        valueMax,
-                        classificationId,
+                valueMax,
+                classificationId,
             } = filters;
 
             if (dateFrom) {
@@ -57,7 +58,69 @@ export class MovimentationsService {
             }
         }
 
-        return qb.getMany();
+        const movimentations = await qb.getMany();
+
+        // Remove sensitive data (password) and format response
+        const sanitizedMovimentations = movimentations.map(mov => ({
+            ...mov,
+            user: mov.user ? {
+                id: mov.user.id,
+                firstName: mov.user.firstName,
+                lastName: mov.user.lastName,
+                email: mov.user.email,
+            } : null,
+            planOfBill: mov.classification?.planOfBill ? {
+                id: mov.classification.planOfBill.id,
+                description: mov.classification.planOfBill.description,
+            } : null,
+        }));
+
+        // Calculate summary
+        const byClassification: Record<number, any> = {};
+        const byPlanOfBills: Record<number, any> = {};
+
+        movimentations.forEach(mov => {
+            const absValue = Math.abs(mov.value);
+
+            // Group by classification
+            if (mov.classification) {
+                const classId = mov.classification.id;
+                if (!byClassification[classId]) {
+                    byClassification[classId] = {
+                        classificationId: classId,
+                        classificationName: mov.classification.description,
+                        type: mov.classification.type,
+                        total: 0,
+                        count: 0,
+                    };
+                }
+                byClassification[classId].total += absValue;
+                byClassification[classId].count += 1;
+            }
+
+            // Group by plan of bills
+            if (mov.classification?.planOfBill) {
+                const planId = mov.classification.planOfBill.id;
+                if (!byPlanOfBills[planId]) {
+                    byPlanOfBills[planId] = {
+                        planOfBillId: planId,
+                        planOfBillName: mov.classification.planOfBill.description,
+                        total: 0,
+                        count: 0,
+                    };
+                }
+                byPlanOfBills[planId].total += absValue;
+                byPlanOfBills[planId].count += 1;
+            }
+        });
+
+        return {
+            movimentations: sanitizedMovimentations,
+            summary: {
+                byClassification: Object.values(byClassification),
+                byPlanOfBills: Object.values(byPlanOfBills),
+            },
+        };
     }
 
     async getMovimentationById(id: number, userId?: number): Promise<Movimentation> {

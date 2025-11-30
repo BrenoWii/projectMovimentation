@@ -192,11 +192,31 @@ describe('MovimentationsService', () => {
   });
 
   describe('getAllMovimentations', () => {
-    it('should return all movimentations with classification relation', async () => {
+    it('should return movimentations with classification and planOfBill relations', async () => {
+      const mockData = [
+        {
+          id: 1,
+          value: 10000,
+          classification: { id: 1, description: 'Compras', planOfBill: { id: 1, description: 'Custos Fixos' } },
+          user: { id: 1, firstName: 'Test', lastName: 'User', email: 'test@test.com', password: 'secret' },
+        },
+      ];
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(mockData),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
       const result = await service.getAllMovimentations();
 
-      expect(repository.createQueryBuilder).toHaveBeenCalled();
-      expect(result).toEqual([]);
+      expect(result).toHaveProperty('movimentations');
+      expect(result).toHaveProperty('summary');
+      expect(result.movimentations).toHaveLength(1);
+      expect(result.movimentations[0].user).not.toHaveProperty('password');
+      expect(result.movimentations[0].planOfBill).toEqual({ id: 1, description: 'Custos Fixos' });
     });
 
     it('should apply filters when provided', async () => {
@@ -208,9 +228,65 @@ describe('MovimentationsService', () => {
         classificationId: '5',
       };
 
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
       await service.getAllMovimentations(filters as any);
 
-      expect(repository.createQueryBuilder).toHaveBeenCalled();
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('m.date >= :dateFrom', expect.any(Object));
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('m.date <= :dateTo', expect.any(Object));
+    });
+
+    it('should calculate summary with byClassification and byPlanOfBills', async () => {
+      const mockData = [
+        {
+          id: 1,
+          value: 10000,
+          classification: { id: 1, description: 'Compras', planOfBill: { id: 1, description: 'Custos Fixos' } },
+          user: { id: 1, firstName: 'Test', lastName: 'User', email: 'test@test.com' },
+        },
+        {
+          id: 2,
+          value: -5000,
+          classification: { id: 1, description: 'Compras', planOfBill: { id: 1, description: 'Custos Fixos' } },
+          user: { id: 1, firstName: 'Test', lastName: 'User', email: 'test@test.com' },
+        },
+      ];
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(mockData),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.getAllMovimentations();
+
+      expect(result.summary.byClassification).toHaveLength(1);
+      expect(result.summary.byClassification[0].classificationId).toBe(1);
+      expect(result.summary.byClassification[0].total).toBe(15000); // Math.abs(10000) + Math.abs(-5000)
+      expect(result.summary.byPlanOfBills).toHaveLength(1);
+      expect(result.summary.byPlanOfBills[0].planOfBillId).toBe(1);
+    });
+
+    it('should filter by userId when provided', async () => {
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      await service.getAllMovimentations(null, 5);
+
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('u.id = :userId', { userId: 5 });
     });
   });
 
@@ -221,7 +297,7 @@ describe('MovimentationsService', () => {
 
       const result = await service.getMovimentationById(1);
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith(1);
+      expect(mockRepository.findOne).toHaveBeenCalledWith({ id: 1 });
       expect(result).toEqual(mockMovimentation);
     });
   });

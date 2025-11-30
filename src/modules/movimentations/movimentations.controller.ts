@@ -11,7 +11,7 @@ export class MovimentationsController {
 
    
     @Get()
-    getAllMovimentations(@Request() request, @Query() query: FindMovimentationsDto): Promise<Movimentation[]> {
+    getAllMovimentations(@Request() request, @Query() query: FindMovimentationsDto): Promise<any> {
         return this.movimentationService.getAllMovimentations(query, request.user.id)
     }
 

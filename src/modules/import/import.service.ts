@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Movimentation } from '../movimentations/movimentation.entity';
 import { DescriptionMappingService } from '../description-mapping/description-mapping.service';
-import { ExtractRow, AnalyzeResult, BulkMovimentationItemDto } from './dto';
+import { ExtractRow, AnalyzeResult, BulkInternalItemDto } from './dto';
 
 @Injectable()
 export class ImportService {
@@ -144,7 +144,7 @@ export class ImportService {
   }
 
   async bulkCreate(
-    items: BulkMovimentationItemDto[],
+    items: BulkInternalItemDto[],
     userId: number,
   ): Promise<{ created: number; errors: any[] }> {
     const errors = [];

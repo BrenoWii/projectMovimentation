@@ -43,6 +43,20 @@ export class ImportController {
 
   @Post('bulk')
   async bulkCreate(@Body() dto: BulkCreateDto, @Request() req) {
-    return this.importService.bulkCreate(dto.movimentations, req.user.id);
+    console.log('Received bulk create request');
+    console.log(`Processing ${dto.items.length} items`);
+    
+    // Map items to expected format
+    const mappedItems = dto.items.map(item => ({
+      date: item.date,
+      value: item.value,
+      classificationId: item.classificationId,
+      payDate: item.payDate,
+      paymentMethod: item.paymentMethod,
+      learnMapping: dto.learnFromImport,
+      originalDescription: item.description,
+    }));
+    
+    return this.importService.bulkCreate(mappedItems, req.user.id);
   }
 }

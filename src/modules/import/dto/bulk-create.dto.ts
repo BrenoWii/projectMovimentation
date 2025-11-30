@@ -21,18 +21,18 @@ export class BulkMovimentationItemDto {
   @IsOptional()
   @IsIn(['CREDIT_CARD', 'DEBIT_CARD', 'PIX', 'MONEY', 'TED'])
   paymentMethod?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  learnMapping?: boolean;
   
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  originalDescription?: string;
+  description: string;
 }
 
 export class BulkCreateDto {
   @ValidateNested({ each: true })
   @Type(() => BulkMovimentationItemDto)
-  movimentations: BulkMovimentationItemDto[];
+  items: BulkMovimentationItemDto[];
+
+  @IsOptional()
+  @IsBoolean()
+  learnFromImport?: boolean;
 }
