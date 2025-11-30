@@ -1,0 +1,105 @@
+### TESTE DO SISTEMA DE IMPORTAÇÃO
+### Requisitos: extensão REST Client no VS Code ou usar Postman/Insomnia
+
+### 1. Login (obter token)
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "seu-email@exemplo.com",
+  "password": "sua-senha"
+}
+
+### Salve o token retornado e use nas próximas requisições
+@token = SEU_TOKEN_AQUI
+
+### ============================================
+### TESTES DE MAPEAMENTO
+### ============================================
+
+### 2. Criar um mapeamento manual
+POST http://localhost:3000/api/mappings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "extractDescription": "SUPERMERCADO NOVA ERA",
+  "classificationId": 27
+}
+
+### 3. Listar mapeamentos
+GET http://localhost:3000/api/mappings
+Authorization: Bearer {{token}}
+
+### 4. Atualizar mapeamento (use o ID retornado)
+PUT http://localhost:3000/api/mappings/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "classificationId": 10
+}
+
+### 5. Deletar mapeamento
+DELETE http://localhost:3000/api/mappings/1
+Authorization: Bearer {{token}}
+
+### ============================================
+### TESTES DE IMPORTAÇÃO
+### ============================================
+
+### 6. Analisar extrato Nubank
+POST http://localhost:3000/api/import/analyze
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "csvContent": "Data,Valor,Identificador,Descrição\n04/11/2025,2022.34,abc123,Transferência recebida pelo Pix - ASSOCIACAO U SAUDE MENTAL\n04/11/2025,-120.60,abc124,Transferência enviada pelo Pix - Andressa Maria\n05/11/2025,-132.74,abc125,Transferência enviada pelo Pix - ESTADO DE MINAS GERAIS\n19/11/2025,-116.08,abc126,Compra no débito - SUPERMERCADO NOVA ERA\n25/11/2025,-114.03,abc127,Compra no débito - SUPERMERCADO NOVA ERA"
+}
+
+### 7. Criar movimentações em massa (após revisar análise)
+POST http://localhost:3000/api/import/bulk
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "movimentations": [
+    {
+      "date": "2025-11-04",
+      "value": 2022.34,
+      "classificationId": 28,
+      "paymentMethod": "PIX",
+      "learnMapping": true,
+      "originalDescription": "Transferência recebida pelo Pix - ASSOCIACAO U SAUDE MENTAL"
+    },
+    {
+      "date": "2025-11-19",
+      "value": 116.08,
+      "classificationId": 27,
+      "paymentMethod": "DEBIT_CARD",
+      "learnMapping": true,
+      "originalDescription": "Compra no débito - SUPERMERCADO NOVA ERA"
+    }
+  ]
+}
+
+### ============================================
+### VERIFICAR RESULTADOS
+### ============================================
+
+### 8. Listar movimentações criadas
+GET http://localhost:3000/api/movimentations
+Authorization: Bearer {{token}}
+
+### 9. Verificar se mapeamentos foram aprendidos
+GET http://localhost:3000/api/mappings
+Authorization: Bearer {{token}}
+
+### 10. Analisar novamente (deve sugerir classificações aprendidas)
+POST http://localhost:3000/api/import/analyze
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "csvContent": "Data,Valor,Identificador,Descrição\n27/11/2025,-42.90,abc128,Compra no débito - SUPERMERCADO NOVA ERA"
+}

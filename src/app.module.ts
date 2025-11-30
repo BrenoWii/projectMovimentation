@@ -10,6 +10,8 @@ import { MovimentationsModule } from './modules/movimentations/movimentations.mo
 import { PlanOfBillsModule } from './modules/plan-of-bills/plan-of-bills.module';
 import { ClassificationModule } from './modules/classification/classification.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { DescriptionMappingModule } from './modules/description-mapping/description-mapping.module';
+import { ImportModule } from './modules/import/import.module';
 
 
 @Module({
@@ -35,6 +37,8 @@ import { AuthModule } from './modules/auth/auth.module';
     MovimentationsModule,
     PlanOfBillsModule,
     ClassificationModule,
+    DescriptionMappingModule,
+    ImportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

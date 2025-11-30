@@ -1,5 +1,5 @@
 
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Classification } from '../classification/classification.entity';
 
@@ -31,7 +31,14 @@ export class Movimentation {
     @Column({ name: 'payment_method', type: 'varchar', length: 100, nullable: true })
     paymentMethod: string;
 
-    @OneToOne(type => User)
-    user: User
+    @ManyToOne(type => User)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
+
+    @CreateDateColumn({ name: 'create_date', type: 'timestamp' })
+    createDate: Date;
+
+    @UpdateDateColumn({ name: 'update_date', type: 'timestamp' })
+    updateDate: Date;
 
 }

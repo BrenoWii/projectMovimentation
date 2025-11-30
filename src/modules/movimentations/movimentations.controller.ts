@@ -11,13 +11,13 @@ export class MovimentationsController {
 
    
     @Get()
-    getAllMovimentations(@Query() query: FindMovimentationsDto): Promise<Movimentation[]> {
-        return this.movimentationService.getAllMovimentations(query)
+    getAllMovimentations(@Request() request, @Query() query: FindMovimentationsDto): Promise<Movimentation[]> {
+        return this.movimentationService.getAllMovimentations(query, request.user.id)
     }
 
     @Get(':id')
-    getMovimentationById(@Param('id') id): Promise<Movimentation> {
-        return this.movimentationService.getMovimentationById(id)
+    getMovimentationById(@Request() request, @Param('id') id): Promise<Movimentation> {
+        return this.movimentationService.getMovimentationById(id, request.user.id)
     }
 
     @Post()

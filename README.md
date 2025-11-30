@@ -91,6 +91,25 @@ $ yarn start:prod
 - `POST /api/movimentations` - Create movimentation
 - `PATCH /api/movimentations/:id` - Update movimentation (partial)
 
+### Import (`/api/import`) 🔒
+*All routes require authentication (Bearer Token)*
+
+- `POST /api/import/analyze` - Analyze CSV extract and suggest classifications
+  - Body: `{ csvContent: string }`
+  - Returns analyzed rows with classification suggestions and confidence levels
+- `POST /api/import/bulk` - Bulk create movimentations
+  - Body: `{ movimentations: BulkMovimentationItemDto[] }`
+  - Creates multiple movimentations at once and optionally learns mappings
+
+### Description Mappings (`/api/mappings`) 🔒
+*All routes require authentication (Bearer Token)*
+
+- `GET /api/mappings` - List all learned mappings
+- `POST /api/mappings` - Create/update mapping
+  - Body: `{ extractDescription: string, classificationId: number }`
+- `PUT /api/mappings/:id` - Update mapping
+- `DELETE /api/mappings/:id` - Delete mapping
+
 ## Entity Models
 
 ### User
@@ -151,6 +170,59 @@ enum PaymentMethod {
   MONEY = 'MONEY',
   TED = 'TED'
 }
+```
+
+### DescriptionMapping
+```typescript
+{
+  id: number;
+  extractDescription: string; // original description from extract
+  normalizedDescription: string; // normalized for matching
+  classification: Classification; // ManyToOne relation
+  classificationId: number;
+  user: User; // ManyToOne relation
+  userId: number;
+  createDate: Date;
+  updateDate: Date;
+}
+```
+
+## Import System
+
+The import system allows you to:
+
+1. **Upload bank extracts (CSV)** - Supports Nubank format and custom formats
+2. **Automatic classification suggestion** - Based on learned mappings
+3. **Smart matching** - Uses normalized text comparison and word matching
+4. **Bulk import** - Create multiple movimentations at once
+5. **Learn from entries** - Save mappings for future imports
+
+### Workflow
+
+1. **Analyze Extract**: Send CSV to `/api/import/analyze`
+   - Returns rows with suggested classifications
+   - Confidence levels: `high`, `medium`, `low`, `none`
+   
+2. **Review & Adjust**: Frontend displays suggestions
+   - User confirms or changes classifications
+   - User can map new descriptions
+   
+3. **Bulk Create**: Send confirmed data to `/api/import/bulk`
+   - Creates all movimentations
+   - Optionally saves new mappings (when `learnMapping: true`)
+
+### CSV Format Support
+
+**Nubank Format:**
+```csv
+Data,Valor,Identificador,Descrição
+04/11/2025,2022.34,abc123,Transferência recebida pelo Pix
+```
+
+**Generic Format:**
+```csv
+date,value,description
+2025-11-04,2022.34,Transferência recebida pelo Pix
 ```
 
 ## Important Details

@@ -11,11 +11,17 @@ export class MovimentationsService {
         private readonly movimentationRepo: Repository<Movimentation>,
     ) {}
 
-    async getAllMovimentations(filters?: FindMovimentationsDto): Promise<Movimentation[]> {
+    async getAllMovimentations(filters?: FindMovimentationsDto, userId?: number): Promise<Movimentation[]> {
         // Build a flexible query with optional filters and include relations
             const qb = this.movimentationRepo
                 .createQueryBuilder('m')
-                .leftJoinAndSelect('m.classification', 'c');
+                .leftJoinAndSelect('m.classification', 'c')
+                .leftJoinAndSelect('m.user', 'u');
+
+        // Always filter by user if provided
+        if (userId) {
+            qb.andWhere('u.id = :userId', { userId });
+        }
 
         if (filters) {
             const {
@@ -49,15 +55,17 @@ export class MovimentationsService {
             if (classificationId) {
                 qb.andWhere('c.id = :classificationId', { classificationId: Number(classificationId) });
             }
-                    // Note: user relation is OneToOne without explicit JoinColumn; avoid join to prevent TypeORM joinColumns error
-                    // If needed later, switch to ManyToOne or add @JoinColumn() on Movimentation.user and then enable the join/filter here.
         }
 
         return qb.getMany();
     }
 
-    async getMovimentationById(id: number): Promise<Movimentation> {
-        return this.movimentationRepo.findOne(id);
+    async getMovimentationById(id: number, userId?: number): Promise<Movimentation> {
+        const query: any = { id };
+        if (userId) {
+            query.user = { id: userId };
+        }
+        return this.movimentationRepo.findOne(query);
     }
 
     async create(movimentation: CreateMovimentationDto): Promise<Movimentation> {
