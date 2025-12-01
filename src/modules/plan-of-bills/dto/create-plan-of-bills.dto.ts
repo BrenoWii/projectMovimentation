@@ -1,7 +1,7 @@
-import { Classification } from "../../classification/classification.entity";
-
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreatePlanOfBillsDto {
+    @IsString()
+    @IsNotEmpty()
     description: string;
-    classification: Classification;
-  }
+}

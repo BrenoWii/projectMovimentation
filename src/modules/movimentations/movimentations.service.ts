@@ -77,7 +77,8 @@ export class MovimentationsService {
 
         // Calculate summary
         const byClassification: Record<number, any> = {};
-        const byPlanOfBills: Record<number, any> = {};
+        const byPlanOfBills: Record<number, any> = {}; // DESPESA
+        const byPlanOfBillsReceita: Record<number, any> = {}; // RECEITA
 
         movimentations.forEach(mov => {
             const absValue = Math.abs(mov.value);
@@ -98,8 +99,8 @@ export class MovimentationsService {
                 byClassification[classId].count += 1;
             }
 
-            // Group by plan of bills
-            if (mov.classification?.planOfBill) {
+            // Group by plan of bills (ONLY DESPESA/EXPENSE type)
+            if (mov.classification?.planOfBill && mov.classification.type === 'DESPESA') {
                 const planId = mov.classification.planOfBill.id;
                 if (!byPlanOfBills[planId]) {
                     byPlanOfBills[planId] = {
@@ -112,6 +113,21 @@ export class MovimentationsService {
                 byPlanOfBills[planId].total += absValue;
                 byPlanOfBills[planId].count += 1;
             }
+
+            // Group by plan of bills for RECEITA (ONLY RECEITA type)
+            if (mov.classification?.planOfBill && mov.classification.type === 'RECEITA') {
+                const planId = mov.classification.planOfBill.id;
+                if (!byPlanOfBillsReceita[planId]) {
+                    byPlanOfBillsReceita[planId] = {
+                        planOfBillId: planId,
+                        planOfBillName: mov.classification.planOfBill.description,
+                        total: 0,
+                        count: 0,
+                    };
+                }
+                byPlanOfBillsReceita[planId].total += absValue;
+                byPlanOfBillsReceita[planId].count += 1;
+            }
         });
 
         return {
@@ -119,6 +135,7 @@ export class MovimentationsService {
             summary: {
                 byClassification: Object.values(byClassification),
                 byPlanOfBills: Object.values(byPlanOfBills),
+                byPlanOfBillsReceita: Object.values(byPlanOfBillsReceita),
             },
         };
     }

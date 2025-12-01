@@ -9,7 +9,11 @@ export class PlanOfBillsService {
     constructor(@InjectRepository(PlanOfBills)private readonly planOfBillsRepo: Repository<PlanOfBills>){}
 
     async create(planOfBills: CreatePlanOfBillsDto): Promise<PlanOfBills>{
-        return await this.planOfBillsRepo.save(this.planOfBillsRepo.create(planOfBills))
+        const dto = {
+            ...planOfBills,
+            description: planOfBills.description.trim()
+        };
+        return await this.planOfBillsRepo.save(this.planOfBillsRepo.create(dto))
     }
     
     async getPlanOfBills(){

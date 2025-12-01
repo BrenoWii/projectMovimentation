@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 COPY package.json yarn.lock* ./
 RUN yarn install
 COPY . .
-CMD ["npm", "run", "start:dev"]
+CMD ["yarn", "start:dev"]
 
 FROM node:20-alpine AS production
 

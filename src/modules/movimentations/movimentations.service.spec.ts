@@ -247,13 +247,13 @@ describe('MovimentationsService', () => {
         {
           id: 1,
           value: 10000,
-          classification: { id: 1, description: 'Compras', planOfBill: { id: 1, description: 'Custos Fixos' } },
+          classification: { id: 1, description: 'Compras', type: 'DESPESA', planOfBill: { id: 1, description: 'Custos Fixos' } },
           user: { id: 1, firstName: 'Test', lastName: 'User', email: 'test@test.com' },
         },
         {
           id: 2,
           value: -5000,
-          classification: { id: 1, description: 'Compras', planOfBill: { id: 1, description: 'Custos Fixos' } },
+          classification: { id: 1, description: 'Compras', type: 'DESPESA', planOfBill: { id: 1, description: 'Custos Fixos' } },
           user: { id: 1, firstName: 'Test', lastName: 'User', email: 'test@test.com' },
         },
       ];
@@ -273,6 +273,43 @@ describe('MovimentationsService', () => {
       expect(result.summary.byClassification[0].total).toBe(15000); // Math.abs(10000) + Math.abs(-5000)
       expect(result.summary.byPlanOfBills).toHaveLength(1);
       expect(result.summary.byPlanOfBills[0].planOfBillId).toBe(1);
+    });
+
+    it('should separate byPlanOfBills (DESPESA only) and byPlanOfBillsReceita (RECEITA only)', async () => {
+      const mockData = [
+        {
+          id: 1,
+          value: 10000,
+          classification: { id: 1, description: 'Compras', type: 'DESPESA', planOfBill: { id: 1, description: 'Custos Fixos' } },
+          user: { id: 1, firstName: 'Test', lastName: 'User', email: 'test@test.com' },
+        },
+        {
+          id: 2,
+          value: -20000,
+          classification: { id: 2, description: 'Salário', type: 'RECEITA', planOfBill: { id: 2, description: 'Receitas' } },
+          user: { id: 1, firstName: 'Test', lastName: 'User', email: 'test@test.com' },
+        },
+      ];
+
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(mockData),
+      };
+
+      mockRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.getAllMovimentations();
+
+      // byPlanOfBills should only have DESPESA
+      expect(result.summary.byPlanOfBills).toHaveLength(1);
+      expect(result.summary.byPlanOfBills[0].planOfBillId).toBe(1);
+      expect(result.summary.byPlanOfBills[0].planOfBillName).toBe('Custos Fixos');
+
+      // byPlanOfBillsReceita should only have RECEITA
+      expect(result.summary.byPlanOfBillsReceita).toHaveLength(1);
+      expect(result.summary.byPlanOfBillsReceita[0].planOfBillId).toBe(2);
+      expect(result.summary.byPlanOfBillsReceita[0].planOfBillName).toBe('Receitas');
     });
 
     it('should filter by userId when provided', async () => {

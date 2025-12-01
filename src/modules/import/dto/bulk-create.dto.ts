@@ -1,9 +1,10 @@
-import { IsNotEmpty, IsDateString, IsNumber, IsInt, IsOptional, IsIn, ValidateNested, IsBoolean, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsInt, IsOptional, IsIn, ValidateNested, IsBoolean, IsString, Validate } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsDateOrIsoStringValidator } from '../../../common/validators/is-date-or-iso-string.validator';
 
 export class BulkMovimentationItemDto {
   @IsNotEmpty()
-  @IsDateString()
+  @Validate(IsDateOrIsoStringValidator)
   date: string;
 
   @IsNotEmpty()
@@ -15,7 +16,7 @@ export class BulkMovimentationItemDto {
   classificationId: number;
 
   @IsOptional()
-  @IsDateString()
+  @Validate(IsDateOrIsoStringValidator)
   payDate?: string;
 
   @IsOptional()
